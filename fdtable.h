@@ -1,12 +1,12 @@
 /*
- _____                     ______            _              
-|_   _|                    | ___ \          | |             
-  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __ 
+ _____                     ______            _
+|_   _|                    | ___ \          | |
+  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __
   | |/ _ \/ _` | '_ ` _ \  |    // _` | '_ \| __|/ _ \| '__|
-  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |   
-  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|   
-                                      | |                   
-                                      |_|                              
+  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |
+  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|
+                                      | |
+                                      |_|
 
 Luis Carrasco, Diane Theriault, Gordon Towne
 Ramdisk - Project 3 - CS552
@@ -25,13 +25,13 @@ pid = 1                                     pid = 2
     fd  |   inode_num   |   offset              fd  |   inode_num   |   offset
 -------------------------------------       -------------------------------------
     1   |       23      |     0                 2   |       43      |     1
-    2   |       21      |     3                 3   |       55      |     0              
+    2   |       21      |     3                 3   |       55      |     0
     4   |       90      |     7                 4   |       23      |     0
     .   |       .       |     .                 .   |       .       |     .
     .   |       .       |     .                 .   |       .       |     .
     .   |       .       |     .                 .   |       .       |     .
 
-The FdtableArray just contains a few of these Fdtable structs   
+The FdtableArray just contains a few of these Fdtable structs
 */
 
 #ifndef FDTABLE_H_
@@ -39,26 +39,37 @@ The FdtableArray just contains a few of these Fdtable structs
 
 #include "defines.h"
 
-typedef struct FdtableEntry
+#ifndef USE_PTHREADS
+#include <linux/module.h>
+#include <linux/errno.h> /* error codes */
+#include <linux/proc_fs.h>
+#include <linux/tty.h>
+#include <linux/sched.h>
+#include <linux/wait.h>
+#include <asm/uaccess.h>
+#include <asm/semaphore.h>
+#endif
+
+struct FdtableEntry
 {
     int     being_used;
     short   fd;
     short   inode_num;
     int     offset;
-}FdtableEntry;
+};
 
-typedef struct Fdtable
+struct Fdtable
 {
     int     pid;
     int     t_size;
     struct  FdtableEntry table[TABLE_SIZE];
-}Fdtable;
+};
 
-typedef struct FdtableArray
+struct FdtableArray
 {
     int     a_size;
     struct  Fdtable array[NUM_TABLES];
-}FdtableArray;
+};
 
 /*METHODS FOR A SINGLE FD TABLE*/
 
@@ -79,12 +90,12 @@ int _fdtable_print              (struct Fdtable *fdtable);                      
 /*METHODS FOR ARRAY OF FD TABLES*/
 
 // These do the same thing as the ones above, only on an
-// array of *fdtables. This is just for convenience to 
+// array of *fdtables. This is just for convenience to
 // encapsulate the *fdtables once we move to the kernel
 // or if we decide to try a multithreaded implementation
 
 int fdtable_a_initialize        (struct FdtableArray *fdtablea);
-int fdtable_a_createtable       (int pid, FdtableArray *fdtablea);  //Creates a new Fdtable inside the array
+int fdtable_a_createtable       (int pid, struct FdtableArray *fdtablea);  //Creates a new Fdtable inside the array
 int fdtable_a_createentry       (int pid, int inodenum, struct FdtableArray *fdtablea);
 int fdtable_a_seekwithfd        (int pid, int fd, int offset, struct FdtableArray *fdtablea);
 int fdtable_a_seekwithinodenum  (int pid, int inodenum, int offset, struct FdtableArray *fdtablea);
@@ -95,7 +106,7 @@ int fdtable_a_inodeforfd        (int pid, int fd, struct FdtableArray *fdtablea)
 int fdtable_a_positionforfd     (int pid, int fd, struct FdtableArray *fdtablea);
 
 // Checks if someone is using the inode inodenum, return 1 if soomeone else is using it, 0 otherwise
-int fdtable_a_checkforinode     (int pid, int inodenum, struct FdtableArray *fdtablea);   
+int fdtable_a_checkforinode     (int pid, int inodenum, struct FdtableArray *fdtablea);
 
 int _fdtable_a_print            (struct FdtableArray *fdtablea);
 

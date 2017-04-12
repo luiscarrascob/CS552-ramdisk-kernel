@@ -1,24 +1,36 @@
 /*
- _____                     ______            _              
-|_   _|                    | ___ \          | |             
-  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __ 
+ _____                     ______            _
+|_   _|                    | ___ \          | |
+  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __
   | |/ _ \/ _` | '_ ` _ \  |    // _` | '_ \| __|/ _ \| '__|
-  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |   
-  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|   
-                                      | |                   
-                                      |_|                                
+  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |
+  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|
+                                      | |
+                                      |_|
  Luis Carrasco, Diane Theriault, Gordon Towne
  Ramdisk - Project 3 - CS552
- 
+
 BLOCK
 Definition for block data structure for regular or directory files
- 
+
  */
 
 #ifndef BLOCK_H
 #define BLOCK_H
 #include "defines.h"
 #include "string_utils.h"
+
+#ifndef USE_PTHREADS
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/errno.h> /* error codes */
+#include <linux/proc_fs.h>
+#include <linux/tty.h>
+#include <linux/sched.h>
+#include <linux/wait.h>
+#include <asm/uaccess.h>
+#include <asm/semaphore.h>
+#endif
 
 //const int DIRECTORY_ENTRIES_PER_BLOCK=BLOCK_BYTES/sizeof(DirectoryEntry);
 #define DIRECTORY_ENTRIES_PER_BLOCK 16
@@ -31,21 +43,25 @@ Definition for block data structure for regular or directory files
 //const int BLOCK_PTRS_PER_STORAGE_BLOCK=BLOCK_BYTES/sizeof(Block*);
 #define BLOCK_PTRS_PER_STORAGE_BLOCK 64
 
-struct Block {
-	char memory [BLOCK_BYTES];
+struct Block
+{
+    char memory [BLOCK_BYTES];
 };
 
-struct DirectoryEntry {
-	char name [DIR_ENTRY_NAME_BYTES];
-	unsigned short int inode_index;
+struct DirectoryEntry
+{
+    char name [DIR_ENTRY_NAME_BYTES];
+    unsigned short int inode_index;
 };
 
-struct IndirectStorageBlock {
-	struct Block *children[BLOCK_PTRS_PER_STORAGE_BLOCK];
+struct IndirectStorageBlock
+{
+    struct Block *children[BLOCK_PTRS_PER_STORAGE_BLOCK];
 };
 
-struct DirectoryBlock {
-	struct DirectoryEntry entries[DIRECTORY_ENTRIES_PER_BLOCK];
+struct DirectoryBlock
+{
+    struct DirectoryEntry entries[DIRECTORY_ENTRIES_PER_BLOCK];
 };
 
 // FUNCTIONS TO MANIPULATE ARBITRARY BLOCKS
@@ -90,8 +106,8 @@ int add_block_to_indirect_storage(struct Block *storage_block, struct Block* new
 // return NULL if there is no block pointed to here
 struct Block* block_at(struct Block *storage_block, int index);
 
-int set_indirect_storage_block(struct Block *storage_block, int index, 
-			       struct Block* new_block);
+int set_indirect_storage_block(struct Block *storage_block, int index,
+                               struct Block* new_block);
 
 //copy memory from the block to the destination
 //start at offset. copy until numBytes or the end of the block.
@@ -120,7 +136,7 @@ int _first_free_directory_entry(struct DirectoryBlock *block);
 int _first_free_block_ptr_loc(struct IndirectStorageBlock *block);
 
 // return index in directory of entry with specified name
-// return -1 if entry not in directory 
+// return -1 if entry not in directory
 int _index_of_directory_with_name(struct DirectoryBlock *block, char* name);
 
 #endif

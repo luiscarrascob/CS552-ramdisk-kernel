@@ -7,7 +7,7 @@
 #endif
 
 //2MB
-#define RAMDISK_SIZE 2097152 
+#define RAMDISK_SIZE 2097152
 #define BLOCK_BYTES 256
 
 //#define TOTAL_BLOCKS=RAMDISK_SIZE/BLOCK_BYTES
@@ -29,13 +29,15 @@
 #define TABLE_SIZE 64
 #define NUM_TABLES 20
 
-#define USE_PTHREADS
+//#define USE_PTHREADS
 
 #ifdef USE_PTHREADS
 #define PRINT printf
 #else
 #define PRINT printk
 #endif
+
+#define DEBUG
 
 #endif
 

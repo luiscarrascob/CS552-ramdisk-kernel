@@ -1,12 +1,12 @@
 /*
- _____                     ______            _              
-|_   _|                    | ___ \          | |             
-  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __ 
+ _____                     ______            _
+|_   _|                    | ___ \          | |
+  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __
   | |/ _ \/ _` | '_ ` _ \  |    // _` | '_ \| __|/ _ \| '__|
-  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |   
-  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|   
-                                      | |                   
-                                      |_|                              
+  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |
+  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|
+                                      | |
+                                      |_|
 
 Luis Carrasco, Diane Theriault, Gordon Towne
 Ramdisk - Project 3 - CS552
@@ -22,28 +22,39 @@ ramdisk_kernel_lib.h
 
 #define DEBUG
 
-struct pathname_args_t {
-	char *pathname;
-	int str_len;
-	int ret_val;
+struct pathname_args_t
+{
+    char *pathname;
+    int str_len;
+    int ret_val;
 };
 
-struct close_args_t {
-	int fd;
-	int ret_val;
+struct close_args_t
+{
+    int fd;
+    int ret_val;
 };
 
-struct read_write_args_t {
-	int fd;
-	int num_bytes;
-	int ret_val;
-	char *address;
+struct read_write_args_t
+{
+    int fd;
+    int num_bytes;
+    int ret_val;
+    char *address;
 };
 
-struct seek_args_t {
-	int fd;
-	int offset;
-	int ret_val;
+struct seek_args_t
+{
+    int fd;
+    int offset;
+    int ret_val;
+};
+
+struct test_args_t
+{
+    int inodes;
+    int blocks;
+    int ret_val;
 };
 
 #define RD_CREAT _IOW(0, 6, struct pathname_args_t)
@@ -55,6 +66,8 @@ struct seek_args_t {
 #define RD_SEEK _IOW(0, 12, struct seek_args_t)
 #define RD_READDIR _IOW(0, 13, struct read_write_args_t)
 #define RD_UNLINK _IOW(0, 14, struct pathname_args_t)
+#define RD_INIT _IOW(0, 15, struct pathname_args_t)
+#define RD_TEST _IOW(0,16, struct test_args_t)
 
 #define PROC_MODULE_NAME "ramdisk_lib"
 

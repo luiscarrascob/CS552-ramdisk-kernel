@@ -1,16 +1,16 @@
 /*
- _____                     ______            _              
-|_   _|                    | ___ \          | |             
-  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __ 
+ _____                     ______            _
+|_   _|                    | ___ \          | |
+  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __
   | |/ _ \/ _` | '_ ` _ \  |    // _` | '_ \| __|/ _ \| '__|
-  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |   
-  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|   
-                                      | |                   
-                                      |_|                               
+  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |
+  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|
+                                      | |
+                                      |_|
  Luis Carrasco, Diane Theriault, Gordon Towne
- Ramdisk - Project 3 - CS552 
+ Ramdisk - Project 3 - CS552
  Some convenience functions for handling strings
- 
+
  */
 
 #ifndef STRING_UTILS_H
@@ -18,6 +18,18 @@
 
 #ifndef NULL
 #define NULL 0x0
+#endif
+
+#ifndef USE_PTHREADS
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/errno.h> /* error codes */
+#include <linux/proc_fs.h>
+#include <linux/tty.h>
+#include <linux/sched.h>
+#include <linux/wait.h>
+#include <asm/uaccess.h>
+#include <asm/semaphore.h>
 #endif
 
 // copy string from src to dst buffer, max_chars is

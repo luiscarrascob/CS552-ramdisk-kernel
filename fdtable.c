@@ -1,12 +1,12 @@
 /*
- _____                     ______            _              
-|_   _|                    | ___ \          | |             
-  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __ 
+ _____                     ______            _
+|_   _|                    | ___ \          | |
+  | | ___  __ _ _ __ ___   | |_/ /__ _ _ __ | |_  ___  _ __
   | |/ _ \/ _` | '_ ` _ \  |    // _` | '_ \| __|/ _ \| '__|
-  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |   
-  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|   
-                                      | |                   
-                                      |_|                              
+  | |  __/ (_| | | | | | | | |\ \ (_| | |_) | |_| (_) | |
+  \_/\___|\__,_|_| |_| |_| \_| \_\__,_| .__/ \__|\___/|_|
+                                      | |
+                                      |_|
 
 Luis Carrasco, Diane Theriault, Gordon Towne
 Ramdisk - Project 3 - CS552
@@ -15,9 +15,10 @@ FILE DESCRIPTOR TABLE:
 This implements the file descriptor table part of the assignment
 
 */
-
+#ifdef USE_PTHREADS
 #include <stdio.h>
 #include <stdlib.h>
+#endif
 
 #include "fdtable.h"
 
@@ -39,14 +40,14 @@ int fdtable_initialize(int pid, struct Fdtable *fdtable)
         fdtable->table[ii].inode_num   = -1;
         fdtable->table[ii].offset      = -1;
     }
-    
+
     return 0;
 }
 
 int fdtable_createentry(int inodenum, struct Fdtable *fdtable)
 {
     int ii;
-     
+
     for (ii = 0; ii < fdtable->t_size; ii++)
     {
         if (fdtable->table[ii].being_used == 0)
@@ -58,17 +59,17 @@ int fdtable_createentry(int inodenum, struct Fdtable *fdtable)
         }
     }
 
-    #ifdef DEBUG
+#ifdef DEBUG
     PRINT("Fdtable:: createentry: table for process %d is full\n", fdtable->pid);
-    #endif
-    
+#endif
+
     return -1;
 }
 
 int fdtable_seekwithfd(int fd, int offset, struct Fdtable *fdtable)
 {
     int ii;
-     
+
     for (ii = 0; ii < fdtable->t_size; ii++)
     {
         if (fdtable->table[ii].fd == fd)
@@ -83,7 +84,7 @@ int fdtable_seekwithfd(int fd, int offset, struct Fdtable *fdtable)
 int fdtable_seekwithinodenum(int inodenum, int offset, struct Fdtable *fdtable)
 {
     int ii;
-     
+
     for (ii = 0; ii < fdtable->t_size; ii++)
     {
         if (fdtable->table[ii].inode_num == inodenum)
@@ -92,36 +93,36 @@ int fdtable_seekwithinodenum(int inodenum, int offset, struct Fdtable *fdtable)
             return 0;
         }
     }
-    
+
     return -1;
 }
 
 int fdtable_removeatfd(int fd, struct Fdtable *fdtable)
 {
     int ii;
-     
+
     for (ii = 0; ii < fdtable->t_size; ii++)
     {
         if (fdtable->table[ii].fd == fd)
         {
-	    if(fdtable->table[ii].being_used != 1)
-	    {
-	      break;
-	    }
+            if(fdtable->table[ii].being_used != 1)
+            {
+                break;
+            }
             fdtable->table[ii].being_used = 0;
             fdtable->table[ii].inode_num  = -1;
             fdtable->table[ii].offset = -1;
             return 0;
         }
     }
-    
+
     return -1;
 }
 
 int fdtable_removeatinodenum(int inodenum, struct Fdtable *fdtable)
 {
     int ii;
-     
+
     for (ii = 0; ii < fdtable->t_size; ii++)
     {
         if (fdtable->table[ii].inode_num == inodenum)
@@ -132,14 +133,14 @@ int fdtable_removeatinodenum(int inodenum, struct Fdtable *fdtable)
             return 0;
         }
     }
-    
+
     return -1;
 }
 
 int fdtable_inodeforfd(int fd, struct Fdtable *fdtable)
 {
     int ii;
-     
+
     for (ii = 0; ii < fdtable->t_size; ii++)
     {
         if (fdtable->table[ii].fd == fd)
@@ -147,14 +148,14 @@ int fdtable_inodeforfd(int fd, struct Fdtable *fdtable)
             return fdtable->table[ii].inode_num;
         }
     }
-    
+
     return -1;
 }
 
 int fdtable_positionforfd(int fd, struct Fdtable *fdtable)
 {
     int ii;
-     
+
     for (ii = 0; ii < fdtable->t_size; ii++)
     {
         if (fdtable->table[ii].fd == fd)
@@ -162,14 +163,14 @@ int fdtable_positionforfd(int fd, struct Fdtable *fdtable)
             return fdtable->table[ii].offset;
         }
     }
-    
+
     return -1;
 }
 
 int fdtable_checkforinode(int inodenum, struct Fdtable *fdtable)
 {
     int ii;
-     
+
     for (ii = 0; ii < fdtable->t_size; ii++)
     {
         if (fdtable->table[ii].inode_num == inodenum)
@@ -177,14 +178,14 @@ int fdtable_checkforinode(int inodenum, struct Fdtable *fdtable)
             return 1;
         }
     }
-    
-    return 0;
+
+    return -1;
 }
 
 int _fdtable_print(struct Fdtable *fdtable)
 {
     int ii;
-    
+
     PRINT ("%*s    |%*s    |%*s    |%*s     \n",5, "used", 5, "fd", 5, "inode", 5, "offset");
     PRINT ("---------------------------------------\n");
 
@@ -192,7 +193,7 @@ int _fdtable_print(struct Fdtable *fdtable)
     {
         PRINT ("%*d    |%*d    |%*d    |%*d     \n", 5, fdtable->table[ii].being_used, 5, fdtable->table[ii].fd, 5, fdtable->table[ii].inode_num, 5, fdtable->table[ii].offset);
     }
-    
+
     return 0;
 }
 
@@ -203,15 +204,15 @@ int fdtable_a_initialize(struct FdtableArray *fdtablea)
     int ii;
 
     fdtablea->a_size = NUM_TABLES;
-    
+
     for (ii = 0; ii < fdtablea->a_size; ii++)
     {
-        fdtable_initialize(-1, (Fdtable*)&(fdtablea->array[ii]));
+        fdtable_initialize(-1, (struct Fdtable*)&(fdtablea->array[ii]));
     }
-    
+
     return 0;
 }
-int fdtable_a_createtable(int pid, FdtableArray *fdtablea)
+int fdtable_a_createtable(int pid, struct FdtableArray *fdtablea)
 {
     int ii;
 
@@ -223,24 +224,25 @@ int fdtable_a_createtable(int pid, FdtableArray *fdtablea)
             return 0;
         }
     }
-    
+
     return -1;
 }
 int fdtable_a_createentry(int pid, int inodenum, struct FdtableArray *fdtablea)
 {
     int ii;
+    int retval;
 
     // Try to find the table
     for (ii = 0; ii < fdtablea->a_size; ii++)
     {
         if (fdtablea->array[ii].pid == pid)
         {
-            return fdtable_createentry(inodenum, (Fdtable*)&(fdtablea->array[ii]));
+            return fdtable_createentry(inodenum, (struct Fdtable*)&(fdtablea->array[ii]));
         }
     }
 
     // If you couldnt' fint an existing table, then create a new one
-    int retval = fdtable_a_createtable(pid, fdtablea);
+    retval = fdtable_a_createtable(pid, fdtablea);
 
     if (retval < 0) return -1;
 
@@ -249,10 +251,10 @@ int fdtable_a_createentry(int pid, int inodenum, struct FdtableArray *fdtablea)
     {
         if (fdtablea->array[ii].pid == pid)
         {
-            return fdtable_createentry(inodenum, (Fdtable*)&(fdtablea->array[ii]));
+            return fdtable_createentry(inodenum, (struct Fdtable*)&(fdtablea->array[ii]));
         }
     }
-    
+
     return -1;
 }
 int fdtable_a_seekwithfd(int pid, int fd, int offset, struct FdtableArray *fdtablea)
@@ -263,10 +265,10 @@ int fdtable_a_seekwithfd(int pid, int fd, int offset, struct FdtableArray *fdtab
     {
         if (fdtablea->array[ii].pid == pid)
         {
-            return fdtable_seekwithfd(fd, offset, (Fdtable*)&(fdtablea->array[ii]));
+            return fdtable_seekwithfd(fd, offset, (struct Fdtable*)&(fdtablea->array[ii]));
         }
     }
-        
+
     return -1;
 }
 int fdtable_a_seekwithinodenum(int pid, int inodenum, int offset, struct FdtableArray *fdtablea)
@@ -277,10 +279,10 @@ int fdtable_a_seekwithinodenum(int pid, int inodenum, int offset, struct Fdtable
     {
         if (fdtablea->array[ii].pid == pid)
         {
-            return fdtable_seekwithinodenum(inodenum, offset, (Fdtable*)&(fdtablea->array[ii]));
+            return fdtable_seekwithinodenum(inodenum, offset, (struct Fdtable*)&(fdtablea->array[ii]));
         }
     }
-        
+
     return -1;
 }
 int fdtable_a_removeatfd(int pid, int fd, struct FdtableArray *fdtablea)
@@ -291,10 +293,10 @@ int fdtable_a_removeatfd(int pid, int fd, struct FdtableArray *fdtablea)
     {
         if (fdtablea->array[ii].pid == pid)
         {
-            return fdtable_removeatfd(fd, (Fdtable*)&(fdtablea->array[ii]));
+            return fdtable_removeatfd(fd, (struct Fdtable*)&(fdtablea->array[ii]));
         }
     }
-        
+
     return -1;
 }
 int fdtable_a_removeatinodenum(int pid, int inodenum, struct FdtableArray *fdtablea)
@@ -305,10 +307,10 @@ int fdtable_a_removeatinodenum(int pid, int inodenum, struct FdtableArray *fdtab
     {
         if (fdtablea->array[ii].pid == pid)
         {
-            return fdtable_removeatinodenum(inodenum, (Fdtable*)&(fdtablea->array[ii]));
+            return fdtable_removeatinodenum(inodenum, (struct Fdtable*)&(fdtablea->array[ii]));
         }
     }
-        
+
     return -1;
 }
 
@@ -320,10 +322,10 @@ int fdtable_a_inodeforfd(int pid, int fd, struct FdtableArray *fdtablea)
     {
         if (fdtablea->array[ii].pid == pid)
         {
-            return fdtable_inodeforfd(fd, (Fdtable*)&(fdtablea->array[ii]));
+            return fdtable_inodeforfd(fd, (struct Fdtable*)&(fdtablea->array[ii]));
         }
     }
-        
+
     return -1;
 }
 
@@ -335,10 +337,10 @@ int fdtable_a_positionforfd(int pid, int fd, struct FdtableArray *fdtablea)
     {
         if (fdtablea->array[ii].pid == pid)
         {
-            return fdtable_positionforfd(fd, (Fdtable*)&(fdtablea->array[ii]));
+            return fdtable_positionforfd(fd, (struct Fdtable*)&(fdtablea->array[ii]));
         }
     }
-        
+
     return -1;
 }
 
@@ -348,17 +350,13 @@ int fdtable_a_checkforinode(int pid, int inodenum, struct FdtableArray *fdtablea
 
     for (ii = 0; ii < fdtablea->a_size; ii++)
     {
-        if (fdtablea->array[ii].pid != pid)
+        if (fdtable_checkforinode(inodenum, (struct Fdtable*)&(fdtablea->array[ii])) == 1)
         {
-            if (fdtable_checkforinode(inodenum, (Fdtable*)&(fdtablea->array[ii])) == 1)
-            {
-                return 1;
-            }
-            
+            return 1;
         }
     }
-        
-    return 0;
+
+    return -1;
 }
 
 int _fdtable_a_print(struct FdtableArray *fdtablea)
@@ -368,7 +366,7 @@ int _fdtable_a_print(struct FdtableArray *fdtablea)
     for (ii = 0; ii < fdtablea->a_size; ii++)
     {
         PRINT("Table For Process: %d\n", fdtablea->array[ii].pid);
-        _fdtable_print((Fdtable*)&(fdtablea->array[ii]));
+        _fdtable_print((struct Fdtable*)&(fdtablea->array[ii]));
         PRINT("\n");
     }
     return 0;
